@@ -32,6 +32,8 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.raywenderlich.treasurehuntapp.data.TreasureLocations
+import java.util.Locale
 
 @SuppressLint("MissingPermission")
 @Composable
@@ -42,11 +44,10 @@ fun HuntScreen(
 
     val context = LocalContext.current
 
-    val currentLocation by remember {
-        derivedStateOf {
-            viewModel.currentLocation
-        }
-    }
+    val currentLocationIndex by viewModel.currentLocationIndex.collectAsState()
+
+    val currentLocation =
+        TreasureLocations.locations[currentLocationIndex]
 
     val completedCount by viewModel.completedCount.collectAsState()
 
@@ -60,19 +61,6 @@ fun HuntScreen(
 
     var showPermissionMessage by remember {
         mutableStateOf(false)
-    }
-
-    val targetLatLng = LatLng(
-        currentLocation.latitude,
-        currentLocation.longitude
-    )
-
-    val cameraPositionState = rememberCameraPositionState {
-
-        position = CameraPosition.fromLatLngZoom(
-            targetLatLng,
-            14f
-        )
     }
 
     val permissionLauncher =
@@ -201,6 +189,7 @@ fun HuntScreen(
 
                     Text(
                         text = String.format(
+                            Locale.getDefault(),
                             "Distance: %.0f metres",
                             distanceToTarget
                         ),
@@ -208,6 +197,54 @@ fun HuntScreen(
                     )
                 }
             }
+        }
+
+        val targetLatLng = LatLng(
+            currentLocation.latitude,
+            currentLocation.longitude
+        )
+
+        val cameraPositionState = rememberCameraPositionState {
+
+            position = CameraPosition.fromLatLngZoom(
+                targetLatLng,
+                14f
+            )
+        }
+
+        val targetMarkerState = remember(currentLocation.id) {
+            MarkerState(position = targetLatLng)
+        }
+
+        val userLatLng =
+            if (userLatitude != null && userLongitude != null) {
+                LatLng(
+                    userLatitude!!,
+                    userLongitude!!
+                )
+            } else {
+                null
+            }
+
+        val userMarkerState = remember {
+            MarkerState(
+                position = userLatLng ?: targetLatLng
+            )
+        }
+
+        LaunchedEffect(userLatLng) {
+            if (userLatLng != null) {
+                userMarkerState.position = userLatLng
+            }
+        }
+
+        LaunchedEffect(currentLocation.id) {
+
+            cameraPositionState.position =
+                CameraPosition.fromLatLngZoom(
+                    targetLatLng,
+                    14f
+                )
         }
 
         GoogleMap(
@@ -225,23 +262,15 @@ fun HuntScreen(
         ) {
 
             Marker(
-                state = MarkerState(position = targetLatLng),
+                state = targetMarkerState,
                 title = currentLocation.name,
                 snippet = currentLocation.address
             )
 
-            if (
-                userLatitude != null &&
-                userLongitude != null
-            ) {
-
-                val userLatLng = LatLng(
-                    userLatitude!!,
-                    userLongitude!!
-                )
+            if (userLatLng != null) {
 
                 Marker(
-                    state = MarkerState(position = userLatLng),
+                    state = userMarkerState,
                     title = "Your Location"
                 )
             }
@@ -288,11 +317,11 @@ fun HuntScreen(
                 showPermissionMessage = false
             },
             title = {
-                Text("Location Required")
+                Text("Not There Yet")
             },
             text = {
                 Text(
-                    "Please allow location access and make sure you are close to the current treasure hunt destination."
+                    "You are not close enough to this treasure hunt destination yet. Continue to the destination and try again."
                 )
             },
             confirmButton = {

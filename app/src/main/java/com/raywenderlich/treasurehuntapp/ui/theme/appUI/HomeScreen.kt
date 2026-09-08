@@ -15,7 +15,6 @@ import com.raywenderlich.treasurehuntapp.viewModel.TreasureHuntViewModel
 
 @Composable
 fun HomeScreen(
-    viewModel: TreasureHuntViewModel,
     onStartHunt: () -> Unit
 ) {
 

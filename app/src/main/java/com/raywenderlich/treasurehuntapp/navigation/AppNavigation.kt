@@ -2,8 +2,11 @@ package com.raywenderlich.treasurehuntapp.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.raywenderlich.treasurehuntapp.ui.theme.appUI.HomeScreen
+import com.raywenderlich.treasurehuntapp.ui.theme.appUI.HuntScreen
+import com.raywenderlich.treasurehuntapp.ui.theme.appUI.CompletionScreen
 import com.raywenderlich.treasurehuntapp.viewModel.TreasureHuntViewModel
 
 
@@ -29,8 +32,8 @@ fun AppNavigation(
         composable(Routes.HOME) {
 
             HomeScreen(
-                viewModel = viewModel,
                 onStartHunt = {
+                    viewModel.resetHunt()
                     navController.navigate(Routes.HUNT)
                 }
             )

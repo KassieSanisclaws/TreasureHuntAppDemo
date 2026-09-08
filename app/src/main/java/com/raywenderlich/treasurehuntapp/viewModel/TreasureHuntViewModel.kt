@@ -86,6 +86,11 @@ class TreasureHuntViewModel : ViewModel() {
                 } else {
 
                     _currentLocationIndex.value++
+
+                    // Clear the distance from the previous location.
+                    // The new distance will be calculated when
+                    // the user's location is updated again.
+                    _distanceToTarget.value = null
                 }
             }
 
@@ -123,5 +128,15 @@ class TreasureHuntViewModel : ViewModel() {
             )
 
         return earthRadius * c
+    }
+
+    fun resetHunt() {
+
+        _currentLocationIndex.value = 0
+        _completedCount.value = 0
+        _isHuntComplete.value = false
+        _userLatitude.value = null
+        _userLongitude.value = null
+        _distanceToTarget.value = null
     }
 }
